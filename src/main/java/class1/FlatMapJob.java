@@ -7,7 +7,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
 
 public class FlatMapJob {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment environment = StreamExecutionEnvironment.getExecutionEnvironment();
         environment.setParallelism(1);
 
@@ -15,11 +15,15 @@ public class FlatMapJob {
         dataStreamSource2.flatMap(new FlatMapFunction<Event, Tuple2<String, String>>() {
             @Override
             public void flatMap(Event value, Collector<Tuple2<String, String>> out) throws Exception {
+                if (value.url.equals("fav/")) {
+                    out.collect(new Tuple2<>(value.url, value.user));
+                } else if (value.url.equals("like/")) {
+                    out.collect(new Tuple2<>(value.url, value.user + " like"));
+                }
                 //if event.url equal fav/ . out put url + name
                 //if event.url equal like/  out put url + name + like
             }
-        });
-
-        //keyby
+        }).print();
+        environment.execute();
     }
 }
